@@ -1,8 +1,8 @@
-Kafka Cluster Deployment with Strimzi
+#Kafka Cluster Deployment with Strimzi
 
 This guide provides step-by-step instructions for deploying an Apache Kafka cluster using Strimzi on Kubernetes, including customization options for storage configurations.
 
-Prerequisites
+##Prerequisites
 
 • Kubernetes cluster (Minikube or other)
 
@@ -12,7 +12,7 @@ Prerequisites
 
 • StorageClass configured (if using custom storage)
 
-Deployment Steps
+##Deployment Steps
 
 1. Create Kafka Namespace
 ```bash
@@ -111,7 +111,7 @@ Consume Messages (in a separate terminal)
 kubectl -n kafka run kafka-consumer -ti --image=quay.io/strimzi/kafka:0.46.1-kafka-4.0.0 --rm=true --restart=Never -- bin/kafka-console-consumer.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --topic my-topic --from-beginning
 ```
 
-Storage Configuration Options
+##Storage Configuration Options
 
 Key storage parameters you can customize:
 • storageClass: Specify your StorageClass (e.g., "standard", "gp2", "local-storage")
@@ -145,7 +145,7 @@ storage:
   type: ephemeral
 
 
-Cleanup
+##Cleanup
 
 Delete Kafka Cluster
 
@@ -163,7 +163,7 @@ Delete Namespace
 kubectl delete namespace kafka
 
 
-Notes
+##Notes
 
 • Always verify available StorageClasses in your cluster with kubectl get storageclass
 
