@@ -1,4 +1,3 @@
-```markdown
 # DeepFlow Installation Guide
 
 This guide provides instructions for installing DeepFlow to monitor a single Kubernetes cluster.
@@ -79,20 +78,3 @@ If you have an underlying load balancer and would like to expose Grafana outside
 ```bash
 ./loadbalancer-type-grafana.sh
 ```
-
-## 6. Next Steps
-- # - Experience AutoMetrics
-- # - Experience AutoTracing
-- # - Learn about AutoTagging
-- # - Integrate OpenTelemetry data
-```
-
-The changes include:
-1. Added note about downloaded manifests and adjusting parameters
-2. Added section about exposing Grafana via Load Balancer
-3. Maintained all previous content and formatting
-
-You may want to:
-1. Ensure the `loadbalancer-type-grafana.sh` script is available in your repository
-2. Add specific instructions for adjusting storage requests if needed
-3. Consider adding an example of parameter customization
