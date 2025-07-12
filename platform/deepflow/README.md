@@ -104,9 +104,9 @@ To experience the AutoTracing capabilities:
 1. Deploy Istio according to the Istio folder
 
 2. Deploy the Bookinfo application:
-bash
+```bash
 kubectl apply -f https://raw.githubusercontent.com/deepflowio/deepflow-demo/main/Istio-Bookinfo/bookinfo.yaml
-
+```
 
 3. View the traces in Grafana:
 - Open the Distributed Tracing Dashboard
