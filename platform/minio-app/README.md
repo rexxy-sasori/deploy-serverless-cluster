@@ -14,27 +14,15 @@ This directory contains Kubernetes manifests for deploying and testing MinIO clu
     helm repo add minio https://charts.min.io/
     helm repo update
 
-    # Option 1: Install MinIO directly with default values
+    # Install MinIO directly 
     helm install minio minio/minio \
       --namespace minio \
       --create-namespace \
       --set rootUser=admin \
       --set rootPassword=password \
-      --set persistence.size=20Gi
-
-    # Option 2: Customize via values file (recommended)
-    # First export the default values
-    helm show values minio/minio > minio-helm-local.yaml
-
-    # Edit the values file (adjust storage, credentials, etc.)
-    vim minio-helm-local.yaml
-
-    # Install with your customized values
-    helm install minio minio/minio \
-      --namespace minio \
-      --create-namespace \
-      -f minio-helm-local.yaml
-
+      --set persistence.size=<size>Gi
+      --set global.storageClass=<storageClass>
+      
     # Verify installation
     kubectl get pods -n minio
     kubectl get svc -n minio
