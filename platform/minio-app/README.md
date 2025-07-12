@@ -10,14 +10,41 @@ This directory contains Kubernetes manifests for deploying and testing MinIO clu
   - Edit `storageClass` to match your environment
   - Or download a fresh manifest:  
     ```bash
+    # Add the MinIO Helm repository
+    helm repo add minio https://charts.min.io/
+    helm repo update
+
+    # Option 1: Install MinIO directly with default values
+    helm install minio minio/minio \
+      --namespace minio \
+      --create-namespace \
+      --set rootUser=admin \
+      --set rootPassword=password \
+      --set persistence.size=20Gi
+
+    # Option 2: Customize via values file (recommended)
+    # First export the default values
     helm show values minio/minio > minio-helm-local.yaml
+
+    # Edit the values file (adjust storage, credentials, etc.)
+    vim minio-helm-local.yaml
+
+    # Install with your customized values
+    helm install minio minio/minio \
+      --namespace minio \
+      --create-namespace \
+      -f minio-helm-local.yaml
+
+    # Verify installation
+    kubectl get pods -n minio
+    kubectl get svc -n minio
     ```
 
 ### `minio-client.yaml`
 - Deploys a pod with `mc` (MinIO Client) for cluster interaction
 - Usage:
   ```bash
-  kubectl apply -f minio-client.yaml
+  kubectl apply -f minio-client.yaml -n minio
   kubectl exec -it minio-client -- sh
   ```
 
@@ -29,12 +56,12 @@ This directory contains Kubernetes manifests for deploying and testing MinIO clu
 
 1. Start the benchmark pod:
    ```bash
-   kubectl apply -f minio-benchmark.yaml
+   kubectl apply -f minio-benchmark.yaml -n minio
    ```
 
 2. Connect to the pod:
    ```bash
-   kubectl exec -it minio-benchmark -- sh
+   kubectl exec -it minio-benchmark -n minio -- sh
    ```
 
 3. Run benchmark commands inside the pod (no `mc` needed):
@@ -69,12 +96,12 @@ This directory contains Kubernetes manifests for deploying and testing MinIO clu
 
 1. Deploy MinIO:
    ```bash
-   kubectl apply -f minio-helm-local.yaml
+   kubectl apply -f minio-helm-local.yaml -n minio
    ```
 
 2. Create a bucket for testing (using client pod):
    ```bash
-   kubectl apply -f minio-client.yaml
+   kubectl apply -f minio-client.yaml -n minio
    kubectl exec -it minio-client -- mc mb myminio/test-bucket
    ```
 
