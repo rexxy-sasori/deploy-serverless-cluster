@@ -1,14 +1,5 @@
 # DeepFlow Installation Guide
 
-This guide provides instructions for installing DeepFlow to monitor a single Kubernetes cluster.
-
-## Table of Contents
-1. #1-introduction
-2. #2-preparation
-3. #3-deploy-deepflow
-4. #4-post-installation
-5. #6-next-steps
-
 ## 1. Introduction
 DeepFlow provides zero-intrusion observability for Kubernetes applications, collecting:
 - AutoMetrics
