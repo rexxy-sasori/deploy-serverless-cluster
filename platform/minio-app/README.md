@@ -19,7 +19,7 @@ This directory contains Kubernetes manifests for deploying and testing MinIO clu
   ```bash
   kubectl apply -f minio-client.yaml
   kubectl exec -it minio-client -- sh
-```
+  ```
 
 ### `minio-benchmark.yaml`
 - Creates a pod with MinIO's `warp` benchmarking tool installed
@@ -30,12 +30,12 @@ This directory contains Kubernetes manifests for deploying and testing MinIO clu
 1. Start the benchmark pod:
    ```bash
    kubectl apply -f minio-benchmark.yaml
-```
+   ```
 
 2. Connect to the pod:
    ```bash
    kubectl exec -it minio-benchmark -- sh
-```
+   ```
 
 3. Run benchmark commands inside the pod (no `mc` needed):
    ```bash
@@ -58,25 +58,25 @@ This directory contains Kubernetes manifests for deploying and testing MinIO clu
               --secret-key=password \
               --bucket=test-benchmark \
               --duration=2m
-```
+   ```
 
 4. View real-time results in console or analyze later:
    ```bash
    warp analyze <benchmark-id>
-```
+   ```
 
 ## Quick Start
 
 1. Deploy MinIO:
    ```bash
    kubectl apply -f minio-helm-local.yaml
-```
+   ```
 
 2. Create a bucket for testing (using client pod):
    ```bash
    kubectl apply -f minio-client.yaml
    kubectl exec -it minio-client -- mc mb myminio/test-bucket
-```
+   ```
 
 ## Important Parameters
 - `--host`: MinIO service name (usually `minio:9000`)
