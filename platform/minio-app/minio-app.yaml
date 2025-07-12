@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"StatefulSet","metadata":{"annotations":{},"labels":{"app":"minio","chart":"minio-5.3.0","heritage":"Helm","release":"minio-1734010377"},"name":"minio-1734010377","namespace":"minio"},"spec":{"podManagementPolicy":"Parallel","replicas":16,"selector":{"matchLabels":{"app":"minio","release":"minio-1734010377"}},"serviceName":"minio-1734010377-svc","template":{"metadata":{"annotations":{"checksum/config":"8cf403ccd5b67dd0cec51c8a04b350037fe7efdddf11f73d8e0ba10a51b3c493","checksum/secrets":"7ed628e0a58f787e2b9009728572502e5843d2d397e930d7a846e28d9248aa7b"},"labels":{"app":"minio","release":"minio-1734010377"},"name":"minio-1734010377"},"spec":{"containers":[{"command":["/bin/sh","-ce","/usr/bin/docker-entrypoint.sh minio server http://minio-1734010377-{0...15}.minio-1734010377-svc.minio.svc/export -S /etc/minio/certs/ --address :9000 --console-address :9001"],"env":[{"name":"MINIO_ROOT_USER","valueFrom":{"secretKeyRef":{"key":"rootUser","name":"minio-1734010377"}}},{"name":"MINIO_ROOT_PASSWORD","valueFrom":{"secretKeyRef":{"key":"rootPassword","name":"minio-1734010377"}}},{"name":"MINIO_PROMETHEUS_AUTH_TYPE","value":"public"}],"image":"intel-112:5000/quay.io/minio/minio:RELEASE.2024-04-18T19-09-19Z","imagePullPolicy":"IfNotPresent","name":"minio","ports":[{"containerPort":9000,"name":"http"},{"containerPort":9001,"name":"http-console"}],"resources":{"requests":{"memory":"16Gi"}},"securityContext":{"readOnlyRootFilesystem":false},"volumeMounts":[{"mountPath":"/export","name":"export"}]}],"securityContext":{"fsGroup":1000,"fsGroupChangePolicy":"OnRootMismatch","runAsGroup":1000,"runAsUser":1000},"serviceAccountName":"minio-sa","volumes":[{"name":"minio-user","secret":{"secretName":"minio-1734010377"}}]}},"updateStrategy":{"type":"RollingUpdate"},"volumeClaimTemplates":[{"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"name":"export"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"20Gi"}},"storageClassName":"fusion-110-nfs-storage"}}]}}
+  creationTimestamp: "2025-01-07T12:43:50Z"
+  generation: 3
+  labels:
+    app: minio
+    chart: minio-5.3.0
+    heritage: Helm
+    release: minio-1734010377
+  name: minio-1734010377
+  namespace: minio
+  resourceVersion: "250701914"
+  uid: 36a76d9b-e02b-4ddb-8ffa-7f59ae2689b1
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: Parallel
+  replicas: 10
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: minio
+      release: minio-1734010377
+  serviceName: minio-1734010377-svc
+  template:
+    metadata:
+      annotations:
+        checksum/config: 8cf403ccd5b67dd0cec51c8a04b350037fe7efdddf11f73d8e0ba10a51b3c493
+        checksum/secrets: 7ed628e0a58f787e2b9009728572502e5843d2d397e930d7a846e28d9248aa7b
+      creationTimestamp: null
+      labels:
+        app: minio
+        release: minio-1734010377
+      name: minio-1734010377
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - minio
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - command:
+        - /bin/sh
+        - -ce
+        - /usr/bin/docker-entrypoint.sh minio server http://minio-1734010377-{0...9}.minio-1734010377-svc.minio.svc/export
+          -S /etc/minio/certs/ --address :9000 --console-address :9001
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              key: rootUser
+              name: minio-1734010377
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: rootPassword
+              name: minio-1734010377
+        - name: MINIO_PROMETHEUS_AUTH_TYPE
+          value: public
+        image: intel-112:5000/quay.io/minio/minio:RELEASE.2024-04-18T19-09-19Z
+        imagePullPolicy: IfNotPresent
+        name: minio
+        ports:
+        - containerPort: 9000
+          name: http
+          protocol: TCP
+        - containerPort: 9001
+          name: http-console
+          protocol: TCP
+        resources:
+          requests:
+            memory: 16Gi
+        securityContext:
+          readOnlyRootFilesystem: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /export
+          name: export
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        node_type: fusion
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsGroup: 1000
+        runAsUser: 1000
+      serviceAccount: minio-sa
+      serviceAccountName: minio-sa
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: minio-user
+        secret:
+          defaultMode: 420
+          secretName: minio-1734010377
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: export
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: fusion-110-nfs-storage
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+status:
+  availableReplicas: 10
+  collisionCount: 0
+  currentReplicas: 10
+  currentRevision: minio-1734010377-58fc97d589
+  observedGeneration: 3
+  readyReplicas: 10
+  replicas: 10
+  updateRevision: minio-1734010377-58fc97d589
+  updatedReplicas: 10

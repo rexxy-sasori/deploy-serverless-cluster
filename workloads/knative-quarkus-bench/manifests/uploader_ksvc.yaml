@@ -1,0 +1,39 @@
+---
+kind: Service
+apiVersion: serving.knative.dev/v1
+metadata:
+  name: uploader-java
+spec:
+  template:
+    spec:
+      containers:
+        - image: fusion-108:5000/uploader:native
+          name: benchmark
+          env:
+            - name: TYPE
+              value: uploader
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cos
+                  key: keyId
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cos
+                  key: secretKey
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: cos-endpoint
+                  key: region
+            - name: QUARKUS_S3_ENDPOINT_OVERRIDE
+              valueFrom:
+                configMapKeyRef:
+                  name: cos-endpoint
+                  key: endpoint
+            - name: AWS_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: cos-endpoint
+                  key: endpoint

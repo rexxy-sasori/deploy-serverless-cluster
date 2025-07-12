@@ -1,0 +1,14 @@
+---
+kind: Service
+apiVersion: serving.knative.dev/v1
+metadata:
+  name: graph-bfs-java
+spec:
+  template:
+    spec:
+      containers:
+        - image: fusion-108:5000/graph-bfs:native
+          name: benchmark
+          env:
+            - name: TYPE
+              value: "printRetValTypeU"

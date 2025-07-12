@@ -1,0 +1,14 @@
+---
+kind: Service
+apiVersion: serving.knative.dev/v1
+metadata:
+  name: server-reply-java
+spec:
+  template:
+    spec:
+      containers:
+        - image: fusion-108:5000/server-reply:native
+          name: benchmark
+          env:
+            - name: TYPE
+              value: "printRetValTypeD"

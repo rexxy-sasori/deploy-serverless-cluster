@@ -1,0 +1,16 @@
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: uploader-trigger-java
+spec:
+  broker: kafka-broker
+  filter:
+    attributes:
+      type: uploader
+      source: curl
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: uploader-java

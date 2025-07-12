@@ -1,0 +1,18 @@
+# Configure server storage
+server:
+  persistentVolume:
+    enabled: true
+    storageClass: "fusion-110-nfs-storage"  # Your existing NFS StorageClass name
+    accessModes:
+      - ReadWriteOnce
+    size: 200Gi  # Adjust size as needed
+
+# Disable alertmanager and other components
+alertmanager:
+  enabled: false
+
+pushgateway:
+  enabled: false
+
+nodeExporter:
+  enabled: false

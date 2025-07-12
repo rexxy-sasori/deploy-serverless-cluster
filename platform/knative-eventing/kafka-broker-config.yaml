@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-broker-config
+  namespace: knative-eventing
+data:
+  bootstrap.servers: "my-cluster-kafka-bootstrap.kafka.svc:9092"  # Plaintext port
+  security.protocol: PLAINTEXT  # No TLS
+  default.topic.partitions: "10"
+  default.topic.replication.factor: "1"

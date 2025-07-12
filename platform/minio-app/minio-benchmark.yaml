@@ -1,0 +1,21 @@
+# warp-benchmark.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: warp-benchmark
+  namespace: minio
+spec:
+  nodeSelector:
+    node_type: fusion
+  containers:
+  - name: warp
+    image: minio/warp:latest
+    imagePullPolicy: IfNotPresent
+    command: ["sleep", "infinity"]  # Keeps the pod running
+    env:
+    - name: MINIO_ENDPOINT
+      value: http://minio-svc.minio.svc.cluster.local:9000
+    - name: MINIO_ACCESS_KEY
+      value: minioadmin  # Replace if using custom credentials
+    - name: MINIO_SECRET_KEY
+      value: minioadmin  # Replace if using custom credentials

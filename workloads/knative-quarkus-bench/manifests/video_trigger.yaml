@@ -1,0 +1,15 @@
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: video-processing-trigger-java
+spec:
+  broker: kafka-broker
+  filter:
+    attributes:
+      type: video-processing
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: video-processing-java

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: minio
+  name: minio-client
+spec:
+  nodeSelector:
+    node_type: fusion
+  containers:
+  - name: minio-mc
+    imagePullPolicy: IfNotPresent
+    image: minio/mc
+    env:
+    - name: MINIO_ENDPOINT
+      value: minio-1734010377-svc.minio.svc.cluster.local:9000
+    - name: MINIO_ACCESS_KEY
+      value: CxgugqFJzNTVMHkpSAJ3
+    - name: MINIO_SECRET_KEY
+      value: A0Iy71KXbjYcxLwiZeLBOs0lUy4bXdcWdozjDZTg
+    command: ["sleep", "infinity"]  # Keeps the pod running
+  restartPolicy: Never
