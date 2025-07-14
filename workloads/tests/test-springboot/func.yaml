@@ -1,0 +1,23 @@
+# $schema: https://raw.githubusercontent.com/knative/func/release-1.18/schema/func_yaml-schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/knative/func/release-1.18/schema/func_yaml-schema.json
+specVersion: 0.36.0
+name: test-springboot
+runtime: springboot
+image: fusion-108:5000/test-springboot
+namespace: default
+created: 2025-07-14T19:19:55.238196766+08:00
+build:
+  builder: pack
+  buildEnvs:
+  - name: BP_NATIVE_IMAGE
+    value: "false"
+  - name: BP_JVM_VERSION
+    value: "21"
+  - name: BP_MAVEN_ACTIVE_PROFILES
+    value: native
+deploy:
+  namespace: default
+  image: fusion-108:5000/test-springboot
+  healthEndpoints:
+    liveness: /actuator/health
+    readiness: /actuator/health
