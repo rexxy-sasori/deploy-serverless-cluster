@@ -1,0 +1,14 @@
+specVersion: 0.36.0
+name: webapp-python
+runtime: python
+created: 2025-07-15T08:30:57.638426+08:00
+image: ""  # Add this if missing
+builder: "s2i"
+buildEnvs: []  # Add this if missing
+envs: []  # Add this if missing
+volumes: []  # Add this if missing
+options: {}  # Add this if missing
+annotations: {}  # Add this if missing
+labels: {}  # Add this if missing
+namespace: ""  # Add this if missing
+handler: function.func:handler  # Add this line
