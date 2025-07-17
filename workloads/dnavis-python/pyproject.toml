@@ -9,7 +9,7 @@ packages = [{ include = "function" }]  # Point to your function directory (where
 [tool.poetry.dependencies]
 python = "^3.8"  # Adjust based on the Python version you're using
 minio = "^7.1.3"  # MinIO client to interact with MinIO storage
-squiggle = "^1.0.0"  # Adjust based on the version of Squiggle you're using
+squiggle = "^0.3.1"  # Adjust based on the version of Squiggle you're using
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"  # Optional, if you want testing support
