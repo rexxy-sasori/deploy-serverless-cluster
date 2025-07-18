@@ -3,4 +3,21 @@
 specVersion: 0.36.0
 name: thumbnailer-python
 runtime: python
+image: fusion-108:5000/dnavis-python
+namespace: default
 created: 2025-07-18T10:32:54.386975+08:00
+build:
+  builder: s2i
+run:
+  envs:
+  - name: MINIO_ENDPOINT
+    value: minio.minio.svc.cluster.local:9000
+  - name: MINIO_ACCESS_KEY
+    value: minioadmin
+  - name: MINIO_SECRET_KEY
+    value: minioadmin
+  - name: MINIO_SECURE
+    value: "false"
+deploy:
+  namespace: default
+  image: fusion-108:5000/thumbnailer-python
