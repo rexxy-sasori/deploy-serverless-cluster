@@ -4,17 +4,70 @@ import json
 import os
 import logging
 from PIL import Image
-from .storage import MinioClient
+from minio import Minio
+from minio.error import S3Error
+
+class MinioClient:
+    def __init__(self, endpoint, access_key, secret_key):
+        """Initialize the MinIO client."""
+        self.client = Minio(
+            endpoint,
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=False  # Assuming HTTP, change to True for HTTPS
+        )
+
+    def download(self, bucket_name, object_name, file_path):
+        """Download a file from MinIO."""
+        try:
+            # Ensure that the bucket exists
+            if not self.client.bucket_exists(bucket_name):
+                raise ValueError(f"Bucket '{bucket_name}' does not exist.")
+            
+            # Get the file size and log it
+            object_stat = self.client.stat_object(bucket_name, object_name)
+            download_size = object_stat.size  # In bytes
+            logging.info(f"Download file '{object_name}' size: {download_size} bytes")  # Log download size
+            
+            # Download the file
+            self.client.fget_object(bucket_name, object_name, file_path)
+            logging.info(f"File '{object_name}' downloaded to '{file_path}'")
+        except S3Error as e:
+            logging.error(f"Error downloading file: {e}")
+            raise e
+
+    def upload_stream(self, bucket_name, object_name, file_stream):
+        """Upload a file to MinIO from a stream."""
+        try:
+            # Ensure the bucket exists
+            if not self.client.bucket_exists(bucket_name):
+                self.client.make_bucket(bucket_name)
+
+            # Log the file size being uploaded
+            upload_size = len(file_stream.getvalue())  # In bytes
+            logging.info(f"Uploading file '{object_name}' size: {upload_size} bytes")  # Log upload size
+
+            # Upload the file
+            self.client.put_object(bucket_name, object_name, file_stream, upload_size)
+            logging.info(f"File '{object_name}' uploaded to bucket '{bucket_name}'")
+            return object_name  # Return the key (object name)
+        except S3Error as e:
+            logging.error(f"Error uploading file: {e}")
+            raise e
+
 
 def new():
     return Function()
 
+
 class Function:
     def __init__(self):
         # Initialize the MinIO client once when the Function is created
-        self.client = MinioClient(endpoint=os.getenv("MINIO_ENDPOINT", "localhost:9000"),
-                                  access_key=os.getenv("MINIO_ACCESS_KEY", "minioadmin"),
-                                  secret_key=os.getenv("MINIO_SECRET_KEY", "minioadmin"))
+        self.client = MinioClient(
+            endpoint=os.getenv("MINIO_ENDPOINT", "localhost:9000"),
+            access_key=os.getenv("MINIO_ACCESS_KEY", "minioadmin"),
+            secret_key=os.getenv("MINIO_SECRET_KEY", "minioadmin")
+        )
 
     async def handle(self, scope, receive, send):
         logging.info("OK: Request Received")
@@ -51,11 +104,6 @@ class Function:
             download_begin = datetime.datetime.now()
             self.client.download(input_bucket, key, download_path)
             download_end = datetime.datetime.now()
-
-            # Log the input file size
-            object_stat = self.client.client.stat_object(input_bucket, key)
-            download_size = object_stat.size
-            logging.info(f"Input object size: {download_size} bytes")
 
             # Process the image: resize
             process_begin = datetime.datetime.now()
