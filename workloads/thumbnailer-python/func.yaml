@@ -3,7 +3,7 @@
 specVersion: 0.36.0
 name: thumbnailer-python
 runtime: python
-image: fusion-108:5000/dnavis-python
+image: fusion-108:5000/thumbnailer-python
 namespace: default
 created: 2025-07-18T10:32:54.386975+08:00
 build:
