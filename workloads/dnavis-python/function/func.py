@@ -25,6 +25,11 @@ class MinioClient:
             if not self.client.bucket_exists(bucket_name):
                 raise ValueError(f"Bucket '{bucket_name}' does not exist.")
             
+            # **Get the file size and log it** (New Code)
+            object_stat = self.client.stat_object(bucket_name, object_name)
+            download_size = object_stat.size  # In bytes
+            logging.info(f"Download file '{object_name}' size: {download_size} bytes")  # Log download size
+            
             # Download the file
             self.client.fget_object(bucket_name, object_name, file_path)
             logging.info(f"File '{object_name}' downloaded to '{file_path}'")
@@ -39,8 +44,12 @@ class MinioClient:
             if not self.client.bucket_exists(bucket_name):
                 self.client.make_bucket(bucket_name)
 
+            # **Log the file size being uploaded** (New Code)
+            upload_size = len(file_stream.getvalue())  # In bytes
+            logging.info(f"Uploading file '{object_name}' size: {upload_size} bytes")  # Log upload size
+
             # Upload the file
-            self.client.put_object(bucket_name, object_name, file_stream, len(file_stream.getvalue()))
+            self.client.put_object(bucket_name, object_name, file_stream, upload_size)
             logging.info(f"File '{object_name}' uploaded to bucket '{bucket_name}'")
             return object_name  # Return the key (object name)
         except S3Error as e:
