@@ -67,10 +67,9 @@ class Function:
 
     async def handle(self, scope, receive, send):
         logging.info("OK: Request Received")
-
         assert scope["type"] == "http"
 
-        # Read HTTP request body
+        # Collect request body
         body = b""
         while True:
             message = await receive()
@@ -80,25 +79,26 @@ class Function:
                     break
 
         try:
-            # Parse JSON body
+            # Parse JSON
             event = json.loads(body.decode("utf-8"))
             input_bucket = event.get("input-bucket")
             output_bucket = event.get("output-bucket")
             key = event.get("objectKey")
+            upload_enabled = event.get("upload", False)  # default to False if not specified
 
             if not all([input_bucket, output_bucket, key]):
                 raise ValueError("Missing required fields in request body")
 
-            # Create local path and ensure directory exists
+            # Prepare local file path
             download_path = os.path.join("/tmp", key)
             os.makedirs(os.path.dirname(download_path), exist_ok=True)
 
-            # Download from input bucket
+            # Download input file
             download_begin = datetime.datetime.now()
             self.client.download(input_bucket, key, download_path)
-            download_stop = datetime.datetime.now()
+            download_end = datetime.datetime.now()
 
-            # Read and process
+            # Read and process data
             with open(download_path, "r") as f:
                 data = f.read()
 
@@ -106,29 +106,34 @@ class Function:
             result = transform(data)
             process_end = datetime.datetime.now()
 
-            # Upload result to output bucket
-            upload_begin = datetime.datetime.now()
-            buf = io.BytesIO(json.dumps(result).encode())
-            buf.seek(0)
-            key_name = self.client.upload_stream(output_bucket, key, buf)
-            upload_stop = datetime.datetime.now()
-            buf.close()
+            key_name = "upload-skipped"
+            upload_time = None
 
-            # Measurements in microseconds
-            download_time = (download_stop - download_begin) / datetime.timedelta(microseconds=1)
-            upload_time = (upload_stop - upload_begin) / datetime.timedelta(microseconds=1)
-            process_time = (process_end - process_begin) / datetime.timedelta(microseconds=1)
+            # Optional upload
+            if upload_enabled:
+                upload_begin = datetime.datetime.now()
+                buf = io.BytesIO(json.dumps(result).encode())
+                buf.seek(0)
+                key_name = self.client.upload_stream(output_bucket, key, buf)
+                upload_end = datetime.datetime.now()
+                buf.close()
+
+                upload_time = (upload_end - upload_begin) / datetime.timedelta(microseconds=1)
+
+            # Measurement
+            measurement = {
+                "download_time": (download_end - download_begin) / datetime.timedelta(microseconds=1),
+                "compute_time": (process_end - process_begin) / datetime.timedelta(microseconds=1),
+            }
+            if upload_enabled:
+                measurement["upload_time"] = upload_time
 
             response = {
                 "result": {
                     "bucket": output_bucket,
                     "key": key_name
                 },
-                "measurement": {
-                    "download_time": download_time,
-                    "compute_time": process_time,
-                    "upload_time": upload_time
-                }
+                "measurement": measurement
             }
 
             await send({
@@ -152,7 +157,7 @@ class Function:
                 "type": "http.response.body",
                 "body": f"Error: {str(e)}".encode("utf-8"),
             })
-
+                    
     def start(self, cfg):
         logging.info("Function starting")
 
