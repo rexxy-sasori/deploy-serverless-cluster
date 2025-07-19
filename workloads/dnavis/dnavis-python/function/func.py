@@ -134,6 +134,7 @@ class Function:
                 upload_begin = datetime.datetime.now()
                 buf = io.BytesIO(json.dumps(result).encode())
                 buf.seek(0)
+                upload_begin_no_encode = datetime.datetime.now()
                 key_name = self.client.upload_file(output_bucket, key, buf)
                 upload_end = datetime.datetime.now()
                 buf.close()
@@ -144,6 +145,7 @@ class Function:
             measurement = {
                 "download_time": (download_end - download_begin) / datetime.timedelta(microseconds=1),
                 "compute_time": (process_end - process_begin) / datetime.timedelta(microseconds=1),
+                "encode_time": (upload_begin_no_encode - upload_begin)/datetime.timedelta(microseconds=1)
             }
             if upload_enabled:
                 measurement["upload_time"] = upload_time
