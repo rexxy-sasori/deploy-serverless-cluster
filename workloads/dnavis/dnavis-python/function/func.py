@@ -37,7 +37,7 @@ class MinioClient:
             logging.error(f"Error downloading file: {e}")
             raise e
 
-    def upload_file(self, bucket_name: str, object_name: str, file_stream: BytesIO, part_size: int = 10 * 1024 * 1024, num_parallel_uploads: int = 3):
+    def upload_file(self, bucket_name: str, object_name: str, file_stream: io.BytesIO, part_size: int = 10 * 1024 * 1024, num_parallel_uploads: int = 3):
         try:
             # Ensure the bucket exists
             if not self.client.bucket_exists(bucket_name):
@@ -134,7 +134,7 @@ class Function:
                 upload_begin = datetime.datetime.now()
                 buf = io.BytesIO(json.dumps(result).encode())
                 buf.seek(0)
-                key_name = self.client.upload_stream(output_bucket, key, buf)
+                key_name = self.client.upload_file(output_bucket, key, buf)
                 upload_end = datetime.datetime.now()
                 buf.close()
 
