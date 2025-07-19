@@ -6,6 +6,7 @@ import logging
 from minio import Minio
 from minio.error import S3Error
 from squiggle import transform
+import pickle
 
 # MinIO Client Class
 class MinioClient:
@@ -132,8 +133,12 @@ class Function:
             # Optional upload
             if upload_enabled:
                 upload_begin = datetime.datetime.now()
-                buf = io.BytesIO(json.dumps(result).encode())
+
+                # Serialize using pickle instead of JSON
+                buf = io.BytesIO()
+                pickle.dump(result, buf)
                 buf.seek(0)
+
                 upload_begin_no_encode = datetime.datetime.now()
                 key_name = self.client.upload_file(output_bucket, key, buf)
                 upload_end = datetime.datetime.now()
