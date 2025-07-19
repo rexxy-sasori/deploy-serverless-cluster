@@ -37,8 +37,7 @@ class MinioClient:
             logging.error(f"Error downloading file: {e}")
             raise e
 
-    def upload_stream(self, bucket_name, object_name, file_stream):
-        """Upload a file to MinIO from a stream."""
+    def upload_file(self, bucket_name: str, object_name: str, file_stream: BytesIO, part_size: int = 10 * 1024 * 1024, num_parallel_uploads: int = 3):
         try:
             # Ensure the bucket exists
             if not self.client.bucket_exists(bucket_name):
@@ -48,8 +47,20 @@ class MinioClient:
             upload_size = len(file_stream.getvalue())  # In bytes
             logging.info(f"Uploading file '{object_name}' size: {upload_size} bytes")  # Log upload size
 
-            # Upload the file
-            self.client.put_object(bucket_name, object_name, file_stream, upload_size)
+            # Multipart upload with parallel uploads for large files
+            # The part_size is adjustable. Here it is set to 10 MB per part
+            file_stream.seek(0)  # Ensure we're reading from the beginning of the file
+
+            # Perform the multipart upload
+            self.client.put_object(
+                bucket_name,
+                object_name,
+                file_stream,
+                upload_size,
+                part_size=part_size,
+                num_parallel_uploads=num_parallel_uploads
+            )
+
             logging.info(f"File '{object_name}' uploaded to bucket '{bucket_name}'")
             return object_name  # Return the key (object name)
         except S3Error as e:
