@@ -191,7 +191,7 @@ func processFile(op, input, output, duration string) error {
 	if op != "extract-gif" {
 		return fmt.Errorf("unsupported operation: %s", op)
 	}
-	cmd := exec.Command("/usr/local/bin/ffmpeg", "-y", "-i", input, "-t", duration, "-vf", "fps=10,scale=320:-1:flags=lanczos", output)
+	cmd := exec.Command("ffmpeg", "-y", "-i", input, "-t", duration, "-vf", "fps=10,scale=320:-1:flags=lanczos", output)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
