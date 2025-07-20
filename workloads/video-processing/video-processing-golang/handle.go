@@ -86,7 +86,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	inputKey := event.Object.Key // This is the correct key, no need to prepend the bucket name.
 	tmpInput := filepath.Join("/tmp", event.Object.Key)
 	tmpOutput := filepath.Join("/tmp", "processed-"+filepath.Base(event.Object.Key))
-	outputKey := filepath.Join(event.Bucket.Output, filepath.Base(tmpOutput))
+	outputKey := outputKey := "processed-" + inputKey
 
 	log.Printf("Downloading from bucket: %s, key: %s", inputBucket, inputKey)
 
