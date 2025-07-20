@@ -81,9 +81,9 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use event.Bucket.Input for the input bucket and event.Bucket.Output for the output bucket
+	// The input bucket is just the name of the bucket, and the input key is the key of the object within the input bucket.
 	inputBucket := event.Bucket.Input
-	inputKey := filepath.Join(event.Bucket.Input, event.Object.Key)
+	inputKey := event.Object.Key // This is the correct key, no need to prepend the bucket name.
 	tmpInput := filepath.Join("/tmp", event.Object.Key)
 	tmpOutput := filepath.Join("/tmp", "processed-"+filepath.Base(event.Object.Key))
 	outputKey := filepath.Join(event.Bucket.Output, filepath.Base(tmpOutput))
