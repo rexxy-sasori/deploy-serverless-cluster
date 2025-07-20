@@ -1,6 +1,7 @@
 import datetime
 import io
-import orjson as json
+import json
+import orjson 
 import os
 import logging
 from minio import Minio
@@ -133,7 +134,7 @@ class Function:
             # Optional upload
             if upload_enabled:
                 upload_begin = datetime.datetime.now()
-                buf = BytesIO(orjson.dumps(
+                buf = io.BytesIO(orjson.dumps(
                     result, 
                     option=orjson.OPT_SERIALIZE_NUMPY,
                     default=lambda o: o.__dict__  # Custom fallback
