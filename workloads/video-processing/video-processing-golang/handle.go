@@ -77,14 +77,15 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const bucketName = "in-bucket"
+	// Use event.Bucket.Input for the input bucket and event.Bucket.Output for the output bucket
+	inputBucket := event.Bucket.Input
 	inputKey := filepath.Join(event.Bucket.Input, event.Object.Key)
 	tmpInput := filepath.Join("/tmp", event.Object.Key)
 	tmpOutput := filepath.Join("/tmp", "processed-"+filepath.Base(event.Object.Key))
 	outputKey := filepath.Join(event.Bucket.Output, filepath.Base(tmpOutput))
 
 	startDL := time.Now()
-	err := downloadFromMinio(bucketName, inputKey, tmpInput)
+	err := downloadFromMinio(inputBucket, inputKey, tmpInput)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Download failed: %v", err), http.StatusInternalServerError)
 		return
@@ -101,7 +102,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	endProc := time.Now()
 
 	startUL := time.Now()
-	err = uploadToMinio(bucketName, outputKey, tmpOutput)
+	err = uploadToMinio(event.Bucket.Output, outputKey, tmpOutput)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Upload failed: %v", err), http.StatusInternalServerError)
 		return
@@ -110,7 +111,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	ulSize, _ := fileSize(tmpOutput)
 
 	resp := Result{}
-	resp.Result.Bucket = bucketName
+	resp.Result.Bucket = event.Bucket.Output
 	resp.Result.Key = outputKey
 	resp.Measurement.DownloadTime = float64(endDL.Sub(startDL).Microseconds())
 	resp.Measurement.DownloadSize = dlSize
@@ -160,7 +161,8 @@ func processFile(op, input, output, duration string) error {
 	if op != "extract-gif" {
 		return fmt.Errorf("unsupported operation: %s", op)
 	}
-	cmd := exec.Command("ffmpeg", "-y", "-i", input, "-t", duration, "-vf", "fps=10,scale=320:-1:flags=lanczos", output)
+	// Use the correct path for ffmpeg in jrottenberg/ffmpeg:7-scratch image
+	cmd := exec.Command("/usr/local/bin/ffmpeg", "-y", "-i", input, "-t", duration, "-vf", "fps=10,scale=320:-1:flags=lanczos", output)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
