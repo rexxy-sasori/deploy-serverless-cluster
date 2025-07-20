@@ -212,3 +212,13 @@ func fileSize(path string) (int64, error) {
 	}
 	return info.Size(), nil
 }
+
+type Function struct{}
+
+func New() any {
+	return &Function{}
+}
+
+func (f *Function) Handle(w http.ResponseWriter, r *http.Request) {
+	Handle(w, r) // delegate to your existing logic
+}
