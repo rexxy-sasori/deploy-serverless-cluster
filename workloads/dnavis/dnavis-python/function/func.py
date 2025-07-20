@@ -1,6 +1,6 @@
 import datetime
 import io
-import json
+import orjson as json
 import os
 import logging
 from minio import Minio
@@ -133,27 +133,28 @@ class Function:
             # Optional upload
             if upload_enabled:
                 upload_begin = datetime.datetime.now()
-
-                # Serialize using pickle instead of JSON
-                buf = io.BytesIO()
-                pickle.dump(result, buf)
+                buf = BytesIO(orjson.dumps(
+                    result, 
+                    option=orjson.OPT_SERIALIZE_NUMPY,
+                    default=lambda o: o.__dict__  # Custom fallback
+                ))
                 buf.seek(0)
-
                 upload_begin_no_encode = datetime.datetime.now()
                 key_name = self.client.upload_file(output_bucket, key, buf)
                 upload_end = datetime.datetime.now()
                 buf.close()
 
-                upload_time = (upload_end - upload_begin) / datetime.timedelta(microseconds=1)
+                encode_time = (upload_begin_no_encode - upload_begin)/datetime.timedelta(microseconds=1)
+                upload_time = (upload_end - upload_begin_no_encode) / datetime.timedelta(microseconds=1)
 
             # Measurement
             measurement = {
                 "download_time": (download_end - download_begin) / datetime.timedelta(microseconds=1),
                 "compute_time": (process_end - process_begin) / datetime.timedelta(microseconds=1),
-                "encode_time": (upload_begin_no_encode - upload_begin)/datetime.timedelta(microseconds=1)
             }
             if upload_enabled:
-                measurement["upload_time"] = upload_time
+                measurement["minio_write_time"] = upload_time
+                measurement["encode_time"] = encode_time
 
             response = {
                 "result": {
