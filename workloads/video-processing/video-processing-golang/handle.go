@@ -86,7 +86,7 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 	inputKey := event.Object.Key // This is the correct key, no need to prepend the bucket name.
 	tmpInput := filepath.Join("/tmp", event.Object.Key)
 	tmpOutput := filepath.Join("/tmp", "processed-"+filepath.Base(event.Object.Key))
-	outputKey := outputKey := "processed-" + inputKey
+	outputKey := "processed-" + inputKey
 
 	log.Printf("Downloading from bucket: %s, key: %s", inputBucket, inputKey)
 
@@ -211,14 +211,4 @@ func fileSize(path string) (int64, error) {
 		return 0, err
 	}
 	return info.Size(), nil
-}
-
-type Function struct{}
-
-func New() any {
-	return &Function{}
-}
-
-func (f *Function) Handle(w http.ResponseWriter, r *http.Request) {
-	Handle(w, r) // delegate to your existing logic
 }
