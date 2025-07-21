@@ -1,1 +1,1 @@
-func build -v --base-image=jrottenberg/ffmpeg:7-scratch --builder=host --image=fusion-108:5000/video-processing-golang --push=true --registry-insecure
+func build -v --base-image=jrottenberg/ffmpeg:7-scratch --builder=host --image=fusion-108:5000/video-processing-python --push=true --registry-insecure
