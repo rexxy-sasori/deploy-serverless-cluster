@@ -8,7 +8,8 @@ license = "MIT"
 dependencies = [
   "httpx",
   "pytest",
-  "pytest-asyncio"
+  "pytest-asyncio",
+  "python-igraph"
 ]
 authors = [
   { name="Your Name", email="you@example.com"},
