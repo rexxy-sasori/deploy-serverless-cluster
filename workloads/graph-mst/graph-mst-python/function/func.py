@@ -44,7 +44,7 @@ class Function:
 
             # Compute spanning tree
             compute_start = datetime.datetime.now()
-            spanning = graph.spanning_tree(None, False)
+            spanning = graph.spanning_tree(None, True)
             compute_end = datetime.datetime.now()
 
             # Calculate timings in microseconds
