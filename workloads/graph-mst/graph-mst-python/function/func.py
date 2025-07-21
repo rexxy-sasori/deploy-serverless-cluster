@@ -1,72 +1,96 @@
-# Function
+# function.py
 import logging
+import json
+import datetime
+from igraph import Graph
 
 
 def new():
-    """ New is the only method that must be implemented by a Function.
-    The instance returned can be of any name.
-    """
     return Function()
 
 
 class Function:
     def __init__(self):
-        """ The init method is an optional method where initialization can be
-        performed. See the start method for a startup hook which includes
-        configuration.
-        """
+        pass
 
     async def handle(self, scope, receive, send):
-        """ Handle all HTTP requests to this Function other than readiness
-        and liveness probes."""
-
         logging.info("OK: Request Received")
 
-        # echo the request to the calling client
+        try:
+            # Receive full request body
+            body = b""
+            more_body = True
+            while more_body:
+                message = await receive()
+                body += message.get("body", b"")
+                more_body = message.get("more_body", False)
+
+            # Parse JSON request
+            payload = json.loads(body.decode("utf-8"))
+            size = payload.get("size")
+            seed = payload.get("seed", None)
+
+            if not isinstance(size, int) or size <= 0:
+                raise ValueError("Invalid 'size'")
+
+            if seed is not None:
+                import random
+                random.seed(seed)
+
+            # Generate Barabási–Albert graph
+            gen_start = datetime.datetime.now()
+            graph = Graph.Barabasi(n=size, m=10)
+            gen_end = datetime.datetime.now()
+
+            # Compute spanning tree
+            compute_start = datetime.datetime.now()
+            spanning = graph.spanning_tree(return_tree=False)
+            compute_end = datetime.datetime.now()
+
+            # Calculate timings in microseconds
+            graph_time = (gen_end - gen_start) / datetime.timedelta(microseconds=1)
+            compute_time = (compute_end - compute_start) / datetime.timedelta(microseconds=1)
+
+            # Prepare result (return edge list)
+            edge_list = [list(edge.tuple) for edge in spanning.es]
+
+            response_body = json.dumps({
+                "result": edge_list,
+                "measurement": {
+                    "graph_generating_time": graph_time,
+                    "compute_time": compute_time
+                }
+            }).encode()
+
+            status = 200
+            content_type = b"application/json"
+
+        except Exception as e:
+            logging.exception("Error handling request")
+            response_body = json.dumps({"error": str(e)}).encode()
+            status = 400
+            content_type = b"application/json"
+
         await send({
-            'type': 'http.response.start',
-            'status': 200,
-            'headers': [
-                [b'content-type', b'text/plain'],
+            "type": "http.response.start",
+            "status": status,
+            "headers": [
+                [b"content-type", content_type],
             ],
         })
         await send({
-            'type': 'http.response.body',
-            'body': 'OK'.encode(),
+            "type": "http.response.body",
+            "body": response_body,
         })
 
     def start(self, cfg):
-        """ start is an optional method which is called when a new Function
-        instance is started, such as when scaling up or during an update.
-        Provided is a dictionary containing all environmental configuration.
-        Args:
-            cfg (Dict[str, str]): A dictionary containing environmental config.
-                In most cases this will be a copy of os.environ, but it is
-                best practice to use this cfg dict instead of os.environ.
-        """
         logging.info("Function starting")
 
     def stop(self):
-        """ stop is an optional method which is called when a function is
-        stopped, such as when scaled down, updated, or manually canceled.  Stop
-        can block while performing function shutdown/cleanup operations.  The
-        process will eventually be killed if this method blocks beyond the
-        platform's configured maximum studown timeout.
-        """
         logging.info("Function stopping")
 
     def alive(self):
-        """ alive is an optional method for performing a deep check on your
-        Function's liveness.  If removed, the system will assume the function
-        is ready if the process is running. This is exposed by default at the
-        path /health/liveness.  The optional string return is a message.
-        """
         return True, "Alive"
 
     def ready(self):
-        """ ready is an optional method for performing a deep check on your
-        Function's readiness.  If removed, the system will assume the function
-        is ready if the process is running.  This is exposed by default at the
-        path /health/rediness.
-        """
         return True, "Ready"
