@@ -7,6 +7,8 @@ import datetime
 from minio import Minio
 from minio.error import S3Error
 
+def new():
+    return Function()
 
 class MinioClient:
     def __init__(self, endpoint, access_key, secret_key):
