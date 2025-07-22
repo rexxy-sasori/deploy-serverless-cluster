@@ -48,7 +48,7 @@ class Function:
         download_end = time.time()
         download_time_us = int((download_end - download_start) * 1_000_000)
 
-        model = torch.load(model_path, map_location=torch.device("cpu"), weights_only=True)
+        model = torch.load(model_path, map_location=torch.device("cpu"), weights_only=False)
         model.eval()
         logging.info(f"Model '{model_name}' loaded in {download_time_us} μs")
         return model, download_time_us
