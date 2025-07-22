@@ -9,49 +9,52 @@ import torchvision.transforms as transforms
 from PIL import Image
 from minio import Minio
 from minio.error import S3Error
+from functools import lru_cache
 
 class Function:
     def __init__(self):
-        self.models = {}  # Cache: model_name -> model
-        self.model_download_times = {}  # model_name -> download time in μs
+        self.model_cache = {}
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
         ])
         self.minio_client = None
-        self.model_bucket = None
+        self.bucket_name = None
 
-    def _init_minio(self, cfg):
-        """Initialize MinIO client lazily from environment/config."""
-        if self.minio_client is None:
-            endpoint = cfg.get("MINIO_ENDPOINT", "minio:9000")
-            access_key = cfg.get("MINIO_ACCESS_KEY", "minioadmin")
-            secret_key = cfg.get("MINIO_SECRET_KEY", "minioadmin")
-            self.model_bucket = cfg.get("MODEL_BUCKET", "models")
-            self.minio_client = Minio(
-                endpoint, access_key=access_key, secret_key=secret_key, secure=False
-            )
-            logging.info("MinIO client initialized.")
+    def start(self):
+        logging.info("Initializing MinIO client from environment variables...")
+        self.minio_client = Minio(
+            os.environ.get("MINIO_ENDPOINT", "minio:9000"),
+            access_key=os.environ.get("MINIO_ACCESS_KEY", "minioadmin"),
+            secret_key=os.environ.get("MINIO_SECRET_KEY", "minioadmin"),
+            secure=False,
+        )
+        self.bucket_name = os.environ.get("MODEL_BUCKET", "models")
+        logging.info(f"MinIO client ready. Using bucket: {self.bucket_name}")
 
-    def _load_model_from_minio(self, model_name: str) -> torch.nn.Module:
-        """Download and load model by name if not already loaded."""
-        if model_name in self.models:
-            return self.models[model_name]
+    def stop(self):
+        logging.info("Function stopping")
 
+    def alive(self):
+        return True, "Alive"
+
+    def ready(self):
+        return True, "Ready"
+
+    @lru_cache(maxsize=3)
+    def load_model(self, model_name):
+        """Download and load model from MinIO, cache using LRU"""
         model_path = f"/tmp/{model_name}"
-        logging.info(f"Downloading model {model_name} to {model_path}")
-
+        logging.info(f"Downloading model '{model_name}' from bucket '{self.bucket_name}'")
         download_start = time.time()
-        self.minio_client.fget_object(self.model_bucket, model_name, model_path)
+        self.minio_client.fget_object(self.bucket_name, model_name, model_path)
         download_end = time.time()
         download_time_us = int((download_end - download_start) * 1_000_000)
-        self.model_download_times[model_name] = download_time_us
 
         model = torch.load(model_path, map_location=torch.device("cpu"))
         model.eval()
-        self.models[model_name] = model
-        logging.info(f"Model {model_name} loaded in {download_time_us} μs")
-        return model
+        logging.info(f"Model '{model_name}' loaded in {download_time_us} μs")
+        return model, download_time_us
 
     async def handle(self, scope, receive, send):
         assert scope["type"] == "http"
@@ -66,21 +69,15 @@ class Function:
 
         try:
             data = json.loads(body.decode())
+            model_name = data["model"]  # e.g. "resnet50.pth"
             image_data = base64.b64decode(data["image"])
-            model_name = data["model_name"]  # required in request
-            cfg = os.environ
-
-            # Init MinIO (only once)
-            self._init_minio(cfg)
-
-            # Load model (download if needed)
-            model = self._load_model_from_minio(model_name)
-
-            # Preprocess image
             image = Image.open(io.BytesIO(image_data)).convert("RGB")
             input_tensor = self.transform(image).unsqueeze(0)
 
-            # Inference timing
+            # Load model and measure download time
+            model, model_download_time_us = self.load_model(model_name)
+
+            # Measure inference time
             inference_start = time.time()
             with torch.no_grad():
                 outputs = model(input_tensor)
@@ -88,19 +85,19 @@ class Function:
             inference_end = time.time()
             inference_time_us = int((inference_end - inference_start) * 1_000_000)
 
-            class_index = predicted.item()
-            logging.info(f"[{model_name}] Inference {inference_time_us} μs, Class {class_index}")
+            class_idx = predicted.item()
+            logging.info(f"Inference: {inference_time_us} μs, Predicted index: {class_idx}")
 
             result = {
-                "class_index": class_index,
+                "class_index": class_idx,
                 "inference_time_us": inference_time_us,
-                "model_download_time_us": self.model_download_times.get(model_name)
+                "model_download_time_us": model_download_time_us
             }
 
             response_body = json.dumps(result).encode()
             status_code = 200
         except Exception as e:
-            logging.exception("Request failed")
+            logging.exception("Request handling failed")
             response_body = json.dumps({"error": str(e)}).encode()
             status_code = 500
 
@@ -113,18 +110,6 @@ class Function:
             "type": "http.response.body",
             "body": response_body,
         })
-
-    def start(self, cfg):
-        logging.info("Function initialized (model loading deferred)")
-
-    def stop(self):
-        logging.info("Function stopping")
-
-    def alive(self):
-        return True, "Alive"
-
-    def ready(self):
-        return True, "Ready"
 
 def new():
     return Function()
