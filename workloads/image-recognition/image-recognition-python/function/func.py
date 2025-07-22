@@ -13,15 +13,6 @@ from functools import lru_cache
 
 class Function:
     def __init__(self):
-        self.model_cache = {}
-        self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-        ])
-        self.minio_client = None
-        self.bucket_name = None
-
-    def start(self):
         logging.info("Initializing MinIO client from environment variables...")
         self.minio_client = Minio(
             os.environ.get("MINIO_ENDPOINT", "minio:9000"),
@@ -31,6 +22,12 @@ class Function:
         )
         self.bucket_name = os.environ.get("MODEL_BUCKET", "models")
         logging.info(f"MinIO client ready. Using bucket: {self.bucket_name}")
+
+        self.model_cache = {}
+        self.transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+        ])
 
     def stop(self):
         logging.info("Function stopping")
